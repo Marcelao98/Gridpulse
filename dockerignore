@@ -1,0 +1,18 @@
+# Ambiente virtual local (não deve ir pro container)
+.venv
+venv
+__pycache__
+*.pyc
+
+# Não precisa ir pro container - as env vars já vêm do docker-compose.yml
+.env
+
+# Git
+.git
+.gitignore
+
+# Logs locais (o container vai gerar os dele)
+logs/*
+
+# Notebooks não são necessários pra rodar a pipeline
+Notebooks

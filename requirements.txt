@@ -1,0 +1,27 @@
+# =====================================
+# GridPulse
+# Python Dependencies
+# =====================================
+
+# Database
+SQLAlchemy==2.0.51
+psycopg2-binary==2.9.12
+
+# Data Processing
+pandas==3.0.1
+numpy==2.4.3
+
+# Data Ingestion
+requests==2.33.0
+openpyxl==3.1.5
+
+# Feature Engineering
+holidays==0.101
+scikit-learn==1.8.0
+
+# Machine Learning
+xgboost==3.2.0
+joblib==1.5.3
+
+# Configuration
+python-dotenv==1.2.2

@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  gp-postgres:
+    image: postgres:17
+    container_name: gp-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 154313
+      POSTGRES_DB: gridpulse
+    ports:
+      - "5433:5432"
+    volumes:
+      - gp_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  gp-pipeline:
+    build: .
+    container_name: gp-pipeline
+    stdin_open: true   # mantém o STDIN aberto (equivalente ao -i do docker run)
+    tty: true           # aloca um terminal (equivalente ao -t do docker run)
+    depends_on:
+      gp-postgres:
+        condition: service_healthy
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 154313
+      POSTGRES_HOST: gp-postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: gridpulse
+    # descomente se quiser editar código sem rebuildar a imagem toda hora:
+    # volumes:
+    #   - .:/app
+
+volumes:
+  gp_postgres_data:
