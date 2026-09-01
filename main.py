@@ -1,3 +1,4 @@
+import argparse
 import logging
 from pathlib import Path
 
@@ -30,46 +31,79 @@ from model.predict import prever
 # Ele roda separado, sob demanda: python -m model.train
 
 
-# ── Pipeline principal ────────────────────────────────────────────────────────
+# ── Mapeamento etapa -> função ────────────────────────────────────────────────
+
+ETAPAS = {
+    "ingestao_ons": ("Ingestão ONS", ingerir_ons),
+    "ingestao_openmeteo": ("Ingestão Open-Meteo", ingerir_openmeteo),
+    "silver": ("Processamento Silver", processar_silver),
+    "gold": ("Feature Engineering (Gold)", processar_gold),
+    "prever": ("Geração de Previsões", prever),
+}
+
+
+# ── Execução de uma etapa isolada ─────────────────────────────────────────────
+
+def rodar_etapa(nome_etapa: str):
+
+    if nome_etapa not in ETAPAS:
+        raise ValueError(
+            f"Etapa '{nome_etapa}' não reconhecida. Opções válidas: {list(ETAPAS.keys())}"
+        )
+
+    descricao, funcao = ETAPAS[nome_etapa]
+
+    logger.info(f"Iniciando etapa: {descricao}")
+
+    try:
+        funcao()
+        logger.info(f"Etapa concluída: {descricao}")
+
+    except Exception as e:
+        logger.exception(f"Erro na etapa '{descricao}': {e}")
+        raise
+
+    finally:
+        engine.dispose()
+
+
+# ── Pipeline completa (mantém compatibilidade - roda tudo em sequência) ───────
 
 def run():
 
-    logger.info("Iniciando pipeline GridPulse...")
+    logger.info("Iniciando pipeline GridPulse (execução completa)...")
 
     try:
-
-        logger.info("Etapa 1/4 — Ingestão ONS")
-        ingerir_ons()
-        logger.info("Ingestão ONS concluída.")
-
-        logger.info("Etapa 2/4 — Ingestão Open-Meteo")
-        ingerir_openmeteo()
-        logger.info("Ingestão Open-Meteo concluída.")
-
-        logger.info("Etapa 3/4 — Processamento Silver")
-        processar_silver()
-        logger.info("Processamento Silver concluído.")
-
-        logger.info("Etapa 4/4 — Feature Engineering (Gold)")
-        processar_gold()
-        logger.info("Feature Engineering Gold concluído.")
-
-        # Gera previsões dos próximos 3 dias
-        logger.info("Gerando previsões para os próximos 3 dias...")
-        prever()
-        logger.info("Previsões concluídas.")
+        for nome_etapa in ETAPAS:
+            descricao, funcao = ETAPAS[nome_etapa]
+            logger.info(f"Etapa: {descricao}")
+            funcao()
+            logger.info(f"Concluída: {descricao}")
 
     except Exception as e:
-
         logger.exception(f"Erro no pipeline: {e}")
         raise
 
     finally:
-
         engine.dispose()
         logger.info("Pipeline finalizado.")
 
 
+# ── Ponto de entrada ──────────────────────────────────────────────────────────
+
 if __name__ == "__main__":
 
-    run()
+    parser = argparse.ArgumentParser(description="Pipeline GridPulse")
+    parser.add_argument(
+        "--etapa",
+        type=str,
+        default=None,
+        help=f"Roda só uma etapa específica. Opções: {list(ETAPAS.keys())}. "
+             f"Se omitido, roda a pipeline completa (comportamento antigo).",
+    )
+    args = parser.parse_args()
+
+    if args.etapa:
+        rodar_etapa(args.etapa)
+    else:
+        run()
