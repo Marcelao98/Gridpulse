@@ -1,2 +1,31 @@
+# Ambiente virtual local
+.venv
+venv
+__pycache__/
+*.pyc
+
+# Segredos - NUNCA sobe
 .env
-logs/
+.env-airflow
+
+# Logs locais
+logs/*
+!logs/.gitkeep
+
+# Dados locais (se forem pesados/grandes, não sobe pro Git)
+data/*
+!data/.gitkeep
+
+# Modelos treinados (opcional - se forem grandes, considere Git LFS)
+models/*.joblib
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# Arquivos do Airflow (não fazem parte do código do GridPulse)
+dags/__pycache__/
+logs-airflow/
+config/
+plugins/
+docker-compose-airflow.yaml
