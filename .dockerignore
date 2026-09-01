@@ -16,3 +16,11 @@ logs/*
 
 # Notebooks não são necessários pra rodar a pipeline
 Notebooks
+
+# Arquivos do Airflow (não fazem parte da imagem do GridPulse)
+dags/
+logs-airflow/
+plugins/
+config/
+docker-compose-airflow.yaml
+.env-airflow
