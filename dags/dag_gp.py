@@ -1,25 +1,25 @@
 from airflow import DAG
 from airflow.providers.docker.operators.docker import DockerOperator
-from airflow.hooks.base import BaseHook
 from datetime import datetime
 
 with DAG(
     dag_id="gridpulse_pipeline",
     description="Pipeline GridPulse - etapas separadas (ingestao -> silver -> gold -> previsao)",
-    schedule=None,
+    schedule="0 9 * * *",
     start_date=datetime(2026, 1, 1),
     catchup=False,
     tags=["gridpulse"],
 ) as dag:
 
-    conn = BaseHook.get_connection("gridpulse_postgres")
-
+    # Usa Jinja templating para buscar a Connection em tempo de execucao da task,
+    # nao no momento em que o arquivo da DAG e "montado" (evita erro de parsing
+    # caso a API de execucao nao esteja acessivel nesse momento especifico)
     env_comum = {
-        "POSTGRES_USER": conn.login,
-        "POSTGRES_PASSWORD": conn.password,
-        "POSTGRES_HOST": conn.host,
-        "POSTGRES_PORT": str(conn.port),
-        "POSTGRES_DB": conn.schema,
+        "POSTGRES_USER": "{{ conn.gridpulse_postgres.login }}",
+        "POSTGRES_PASSWORD": "{{ conn.gridpulse_postgres.password }}",
+        "POSTGRES_HOST": "{{ conn.gridpulse_postgres.host }}",
+        "POSTGRES_PORT": "{{ conn.gridpulse_postgres.port }}",
+        "POSTGRES_DB": "{{ conn.gridpulse_postgres.schema }}",
     }
 
     def criar_task(task_id: str, etapa: str) -> DockerOperator:
